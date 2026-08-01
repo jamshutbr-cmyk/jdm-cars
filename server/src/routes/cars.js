@@ -67,6 +67,11 @@ export function carsRouter(botToken) {
     res.json({ url });
   });
 
+  router.get('/users/:userId/avatar', async (req, res) => {
+    const url = await getAvatarUrl(req.params.userId, botToken);
+    res.json({ url });
+  });
+
   router.get('/feed', async (req, res) => {
     const db = await readDb();
     const sort = req.query.sort === 'top' ? 'top' : req.query.sort === 'following' ? 'following' : 'new';

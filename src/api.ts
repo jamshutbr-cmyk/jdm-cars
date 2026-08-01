@@ -94,6 +94,9 @@ export const api = {
 
   getAvatar: () => request<{ url: string | null }>('/api/me/avatar'),
 
+  getUserAvatar: (userId: string) =>
+    request<{ url: string | null }>(`/api/users/${userId}/avatar`),
+
   getPublicProfile: (userId: string) =>
     request<PublicProfile>(`/api/profile/${userId}`),
 

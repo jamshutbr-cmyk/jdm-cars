@@ -7,6 +7,25 @@ import { CarPostModal } from '@/components/CarPostModal';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { IconHeart, IconTrophy, IconImage } from '@/components/icons';
 
+// Компонент аватарки с ленивой загрузкой
+function UserAvatar({ userId, name }: { userId: string; name: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    api.getUserAvatar(userId).then((r) => setUrl(r.url)).catch(() => {});
+  }, [userId]);
+  return (
+    <div className="w-9 h-9 rounded-full shrink-0 overflow-hidden border border-accent-line">
+      {url ? (
+        <img src={url} alt={name} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center font-display font-semibold text-[13px] bg-accent-soft text-ink">
+          {name.charAt(0).toUpperCase()}
+        </div>
+      )}
+    </div>
+  );
+}
+
 type View = 'cars' | 'users';
 
 export function LeaderboardPage() {
@@ -135,9 +154,7 @@ export function LeaderboardPage() {
                   className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-base-raised transition-colors"
                 >
                   <div className="w-6 text-[13px] text-ink-faint tabular shrink-0">{entry.rank}</div>
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-display font-semibold text-[13px] shrink-0 bg-accent-soft border border-accent-line text-ink">
-                    {entry.name.charAt(0).toUpperCase()}
-                  </div>
+                  <UserAvatar userId={entry.userId} name={entry.name} />
                   <div className="min-w-0 flex-1">
                     <div className="text-[14px] font-medium truncate">{entry.name}</div>
                     <div className="text-[12px] text-ink-faint truncate">

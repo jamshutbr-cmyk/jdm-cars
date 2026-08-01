@@ -18,11 +18,15 @@ export function PublicProfileModal({ userId, onClose }: PublicProfileModalProps)
   const [posts, setPosts] = useState<CarPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<CarPost | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     api.getPublicProfile(userId)
       .then((p) => { setProfile(p); setPosts(p.posts); })
       .catch((e) => setError(e.message));
+    api.getUserAvatar(userId)
+      .then((res) => setAvatarUrl(res.url))
+      .catch(() => {});
   }, [userId]);
 
   const handleToggleFollow = async () => {
@@ -98,8 +102,14 @@ export function PublicProfileModal({ userId, onClose }: PublicProfileModalProps)
               <div className="px-5 pt-5">
                 <div className="card-outline rounded-xl2 bg-base-raised p-5">
                   <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-full flex items-center justify-center font-display font-bold text-[20px] shrink-0 bg-accent-soft border border-accent-line text-ink">
-                      {profile.name.charAt(0).toUpperCase()}
+                    <div className="w-14 h-14 rounded-full shrink-0 overflow-hidden border border-accent-line">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-display font-bold text-[20px] bg-accent-soft text-ink">
+                          {profile.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-display font-semibold text-[17px] truncate">{profile.name}</div>
