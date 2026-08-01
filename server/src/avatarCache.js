@@ -1,7 +1,10 @@
 /**
  * Получает URL аватарки пользователя через Telegram Bot API.
  * Кешируем в памяти на 1 час чтобы не спамить API.
+ * Также сохраняем в Turso для долгосрочного хранения.
  */
+
+import { tursoClient } from './db.js';
 
 const cache = new Map(); // userId -> { url, expiresAt }
 const TTL = 60 * 60 * 1000; // 1 час
@@ -18,28 +21,35 @@ export async function getAvatarUrl(telegramUserId, botToken) {
   }
 
   try {
-    // Получаем список фото профиля
+    // Сначала смотрим в Turso
+    const dbRes = await tursoClient.execute({ sql: 'SELECT url FROM avatars WHERE userId = ?', args: [numericId] });
+    if (dbRes.rows.length > 0 && dbRes.rows[0].url) {
+      const url = dbRes.rows[0].url;
+      cache.set(numericId, { url, expiresAt: Date.now() + TTL });
+      return url;
+    }
+  } catch {
+    // если Turso недоступен — продолжаем
+  }
+
+  try {
     const photosRes = await fetch(
       `https://api.telegram.org/bot${botToken}/getUserProfilePhotos?user_id=${numericId}&limit=1`,
     );
     const photosData = await photosRes.json();
-    console.log('[avatar] getUserProfilePhotos:', JSON.stringify(photosData).slice(0, 200));
 
     if (!photosData.ok || !photosData.result.photos.length) {
       cache.set(numericId, { url: null, expiresAt: Date.now() + TTL });
       return null;
     }
 
-    // Берём файл среднего размера (индекс 1, или последний если меньше)
     const photos = photosData.result.photos[0];
     const fileId = photos[Math.min(1, photos.length - 1)].file_id;
 
-    // Получаем file_path
     const fileRes = await fetch(
       `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`,
     );
     const fileData = await fileRes.json();
-    console.log('[avatar] getFile:', JSON.stringify(fileData).slice(0, 200));
 
     if (!fileData.ok) {
       cache.set(numericId, { url: null, expiresAt: Date.now() + TTL });
@@ -47,11 +57,13 @@ export async function getAvatarUrl(telegramUserId, botToken) {
     }
 
     const url = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
-    console.log('[avatar] url ready for', numericId);
     cache.set(numericId, { url, expiresAt: Date.now() + TTL });
+
+    // Сохраняем в Turso
+    tursoClient.execute({ sql: 'INSERT OR REPLACE INTO avatars (userId, url) VALUES (?, ?)', args: [numericId, url] }).catch(() => {});
+
     return url;
-  } catch (e) {
-    console.error('[avatar] error:', e.message);
+  } catch {
     return null;
   }
 }
