@@ -4,7 +4,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, '..', 'data');
+
+// В проде (Railway) укажите DATA_DIR на смонтированный Volume — иначе база
+// живёт внутри контейнера и стирается при каждом передеплое.
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 const emptyState = () => ({ cars: [], likes: [], favorites: [], views: [], follows: [] });

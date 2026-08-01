@@ -2,13 +2,22 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync, mkdirSync, unlink } from 'node:fs';
 import { nanoid } from 'nanoid';
 import { readDb, writeDb } from '../db.js';
 import { anriCheck } from '../anri.js';
 import { getAvatarUrl } from '../avatarCache.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
+
+// В проде (Railway) укажите UPLOADS_DIR на смонтированный Volume — иначе
+// загруженные фото живут внутри контейнера и стираются при передеплое.
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '..', '..', 'uploads');
+
+// На новом Volume этой папки ещё не существует — multer сам её не создаст.
+if (!existsSync(UPLOADS_DIR)) {
+  mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
@@ -144,8 +153,15 @@ export function carsRouter(botToken) {
       state.cars = state.cars.filter((c) => c.id !== req.params.id);
       state.likes = state.likes.filter((l) => l.carId !== req.params.id);
       state.favorites = state.favorites.filter((f) => f.carId !== req.params.id);
+      state.views = (state.views || []).filter((v) => v.carId !== req.params.id);
       return state;
     });
+
+    // Чистим файлы с диска — иначе Volume будет расти вечно даже после удаления постов
+    const filesToRemove = car.imageFiles?.length ? car.imageFiles : [car.imageFile].filter(Boolean);
+    for (const filename of filesToRemove) {
+      unlink(path.join(UPLOADS_DIR, filename), () => {});
+    }
 
     res.json({ ok: true });
   });
