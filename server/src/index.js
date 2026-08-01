@@ -21,7 +21,7 @@ app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '7d' }));
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.use('/api', createAuthMiddleware({ botToken: BOT_TOKEN, devMode: DEV_MODE }));
-app.use('/api', carsRouter());
+app.use('/api', carsRouter(BOT_TOKEN));
 
 // Multer / generic error handler — keeps API responses JSON instead of HTML stack traces.
 app.use((err, _req, res, _next) => {

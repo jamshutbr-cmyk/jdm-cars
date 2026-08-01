@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { nanoid } from 'nanoid';
 import { readDb, writeDb } from '../db.js';
 import { anriCheck } from '../anri.js';
+import { getAvatarUrl } from '../avatarCache.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
@@ -30,7 +31,7 @@ const upload = multer({
   },
 });
 
-export function carsRouter() {
+export function carsRouter(botToken) {
   const router = Router();
 
   function serialize(car, db, userId) {
@@ -60,6 +61,11 @@ export function carsRouter() {
       viewsCount,
     };
   }
+
+  router.get('/me/avatar', async (req, res) => {
+    const url = await getAvatarUrl(req.user.id, botToken);
+    res.json({ url });
+  });
 
   router.get('/feed', async (req, res) => {
     const db = await readDb();

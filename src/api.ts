@@ -92,6 +92,8 @@ export const api = {
 
   getProfile: () => request<Profile>('/api/profile/me'),
 
+  getAvatar: () => request<{ url: string | null }>('/api/me/avatar'),
+
   getPublicProfile: (userId: string) =>
     request<PublicProfile>(`/api/profile/${userId}`),
 

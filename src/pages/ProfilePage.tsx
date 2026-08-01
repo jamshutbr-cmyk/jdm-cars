@@ -15,10 +15,12 @@ export function ProfilePage() {
   const [tab, setTab] = useState<Tab>('posts');
   const [selectedPost, setSelectedPost] = useState<CarPost | null>(null);
   const [editPost, setEditPost] = useState<CarPost | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const load = () => {
     setError(null);
     api.getProfile().then(setProfile).catch((e) => setError(e.message));
+    api.getAvatar().then((res) => setAvatarUrl(res.url)).catch(() => {});
   };
 
   useEffect(load, []);
@@ -113,8 +115,14 @@ export function ProfilePage() {
 
       <div className="px-5">
         <div className="card-outline rounded-xl2 bg-base-raised p-5 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center font-display font-bold text-[22px] shrink-0 bg-accent-soft border border-accent-line text-ink">
-            {profile.name.charAt(0).toUpperCase()}
+          <div className="w-16 h-16 rounded-full shrink-0 overflow-hidden border border-accent-line">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center font-display font-bold text-[22px] bg-accent-soft text-ink">
+                {profile.name.charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
           <div className="min-w-0">
             <div className="font-display font-semibold text-[18px] truncate">{profile.name}</div>
