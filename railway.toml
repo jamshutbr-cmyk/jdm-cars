@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm --prefix server install"
+
+[deploy]
+startCommand = "npm --prefix server start"
+restartPolicyType = "on_failure"
