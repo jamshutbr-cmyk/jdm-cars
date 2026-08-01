@@ -68,7 +68,8 @@ export function carsRouter(botToken) {
   });
 
   router.get('/users/:userId/avatar', async (req, res) => {
-    const url = await getAvatarUrl(req.params.userId, botToken);
+    const db = await (await import('../db.js')).readDb();
+    const url = (db.avatars && db.avatars[req.params.userId]) || null;
     res.json({ url });
   });
 

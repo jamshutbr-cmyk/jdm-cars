@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import { getAvatarUrl } from './avatarCache.js';
+import { writeDb } from './db.js';
 
 /**
  * Validates the `initData` string Telegram gives every Mini App on launch.
@@ -39,7 +41,7 @@ function verifyInitData(initData, botToken) {
 }
 
 export function createAuthMiddleware({ botToken, devMode }) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const authHeader = req.header('authorization') || '';
     const devUser = req.header('x-dev-user');
 
@@ -48,6 +50,16 @@ export function createAuthMiddleware({ botToken, devMode }) {
       const user = botToken ? verifyInitData(initData, botToken) : null;
       if (user) {
         req.user = user;
+        // Фоново кешируем аватарку пользователя в БД
+        getAvatarUrl(user.id, botToken).then((avatarUrl) => {
+          if (avatarUrl) {
+            writeDb((state) => {
+              if (!state.avatars) state.avatars = {};
+              state.avatars[user.id] = avatarUrl;
+              return state;
+            }).catch(() => {});
+          }
+        }).catch(() => {});
         return next();
       }
       if (!devMode) {
