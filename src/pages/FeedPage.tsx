@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { CarPostCard } from '@/components/CarPostCard';
 import { CarPostModal } from '@/components/CarPostModal';
 import { CarPostSkeleton } from '@/components/CarPostSkeleton';
+import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { IconClock, IconTrophy, IconSearch, IconClose } from '@/components/icons';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -21,6 +22,7 @@ export function FeedPage() {
   const [selectedPost, setSelectedPost] = useState<CarPost | null>(null);
   const [editPost, setEditPost] = useState<CarPost | null>(null);
   const [query, setQuery] = useState('');
+  const [viewingUserId, setViewingUserId] = useState<string | null>(null);
 
   const loadPage = useCallback(async (s: FeedSort, p: number, replace: boolean) => {
     try {
@@ -200,6 +202,7 @@ export function FeedPage() {
             onDelete={handleDelete}
             onEdit={() => setEditPost(post)}
             onClick={() => setSelectedPost(post)}
+            onAuthorClick={setViewingUserId}
           />
         ))}
 
@@ -223,13 +226,18 @@ export function FeedPage() {
       {selectedPost && !editPost && (
         <CarPostModal post={selectedPost} isOpen={true} onClose={() => setSelectedPost(null)}
           onToggleLike={handleToggleLike} onToggleFavorite={handleToggleFavorite}
-          onDelete={handleDelete} onUpdate={handleUpdate} />
+          onDelete={handleDelete} onUpdate={handleUpdate}
+          onAuthorClick={(uid) => { setSelectedPost(null); setViewingUserId(uid); }} />
       )}
 
       {editPost && (
         <CarPostModal post={editPost} isOpen={true} onClose={() => setEditPost(null)}
           onToggleLike={handleToggleLike} onToggleFavorite={handleToggleFavorite}
           onDelete={handleDelete} onUpdate={handleUpdate} startEditing={true} />
+      )}
+
+      {viewingUserId && (
+        <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} />
       )}
     </div>
   );

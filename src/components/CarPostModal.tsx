@@ -14,6 +14,7 @@ interface CarPostModalProps {
   onDelete?: (id: string) => void;
   onUpdate?: (updatedPost: CarPost) => void;
   startEditing?: boolean;
+  onAuthorClick?: (userId: string) => void;
 }
 
 const dateFmt = new Intl.RelativeTimeFormat('ru-RU', { numeric: 'auto' });
@@ -29,7 +30,7 @@ function timeAgo(iso: string) {
   return dateFmt.format(-days, 'day');
 }
 
-export function CarPostModal({ post, isOpen, onClose, onToggleLike, onToggleFavorite, onDelete, onUpdate, startEditing }: CarPostModalProps) {
+export function CarPostModal({ post, isOpen, onClose, onToggleLike, onToggleFavorite, onDelete, onUpdate, startEditing, onAuthorClick }: CarPostModalProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [viewsCount, setViewsCount] = useState(post.viewsCount ?? 0);
 
@@ -190,7 +191,17 @@ export function CarPostModal({ post, isOpen, onClose, onToggleLike, onToggleFavo
                 <div className="text-[14px] text-ink-dim mt-1">{post.year} год</div>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-[14px] font-medium text-ink">{post.authorName}</div>
+                <div
+                  className={`text-[14px] font-medium text-ink ${!post.isMine && onAuthorClick ? 'cursor-pointer active:opacity-60 transition-opacity' : ''}`}
+                  onClick={() => {
+                    if (!post.isMine && onAuthorClick) {
+                      onClose();
+                      onAuthorClick(post.authorId);
+                    }
+                  }}
+                >
+                  {post.authorName}
+                </div>
                 {post.authorUsername && (
                   <div className="text-[12px] text-ink-faint">@{post.authorUsername}</div>
                 )}

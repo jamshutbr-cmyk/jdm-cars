@@ -4,6 +4,7 @@ import type { Profile, CarPost } from '@/types';
 import { Header } from '@/components/Header';
 import { CarPostCard } from '@/components/CarPostCard';
 import { CarPostModal } from '@/components/CarPostModal';
+import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { IconHeart, IconImage, IconBookmark, IconTrophy } from '@/components/icons';
 import { getRank } from '@/utils/rank';
 
@@ -16,6 +17,7 @@ export function ProfilePage() {
   const [selectedPost, setSelectedPost] = useState<CarPost | null>(null);
   const [editPost, setEditPost] = useState<CarPost | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [viewingUserId, setViewingUserId] = useState<string | null>(null);
 
   const load = () => {
     setError(null);
@@ -234,6 +236,7 @@ export function ProfilePage() {
             onDelete={tab === 'posts' ? handleDelete : undefined}
             onEdit={() => setEditPost(post)}
             onClick={() => setSelectedPost(post)}
+            onAuthorClick={setViewingUserId}
           />
         ))}
       </div>
@@ -247,6 +250,7 @@ export function ProfilePage() {
           onToggleFavorite={handleToggleFavorite}
           onDelete={tab === 'posts' ? handleDelete : undefined}
           onUpdate={handleUpdate}
+          onAuthorClick={(uid) => { setSelectedPost(null); setViewingUserId(uid); }}
         />
       )}
 
@@ -261,6 +265,10 @@ export function ProfilePage() {
           onUpdate={handleUpdate}
           startEditing={true}
         />
+      )}
+
+      {viewingUserId && (
+        <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} />
       )}
     </div>
   );

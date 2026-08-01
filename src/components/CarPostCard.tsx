@@ -12,6 +12,7 @@ interface CarPostCardProps {
   onDelete?: (id: string) => void;
   onEdit?: () => void;
   onClick?: () => void;
+  onAuthorClick?: (userId: string) => void;
 }
 
 const dateFmt = new Intl.RelativeTimeFormat('ru-RU', { numeric: 'auto' });
@@ -27,7 +28,7 @@ function timeAgo(iso: string) {
   return dateFmt.format(-days, 'day');
 }
 
-export function CarPostCard({ post, rank, onToggleLike, onToggleFavorite, onDelete, onEdit, onClick }: CarPostCardProps) {
+export function CarPostCard({ post, rank, onToggleLike, onToggleFavorite, onDelete, onEdit, onClick, onAuthorClick }: CarPostCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
@@ -47,15 +48,25 @@ export function CarPostCard({ post, rank, onToggleLike, onToggleFavorite, onDele
       </div>
 
       <div className="p-4">
-        <div className="flex items-start justify-between gap-3 cursor-pointer" onClick={onClick}>
-          <div className="min-w-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 cursor-pointer" onClick={onClick}>
             <div className="font-display font-semibold text-[16px] leading-tight truncate">
               {post.brand} {post.model}
             </div>
             <div className="text-[12px] text-ink-faint mt-0.5">{post.year} год</div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-[13px] text-ink-dim">{post.authorName}</div>
+            <div
+              className={`text-[13px] text-ink-dim ${!post.isMine && onAuthorClick ? 'cursor-pointer active:opacity-60 transition-opacity' : ''}`}
+              onClick={(e) => {
+                if (!post.isMine && onAuthorClick) {
+                  e.stopPropagation();
+                  onAuthorClick(post.authorId);
+                }
+              }}
+            >
+              {post.authorName}
+            </div>
             <div className="text-[11px] text-ink-faint">{timeAgo(post.createdAt)}</div>
           </div>
         </div>

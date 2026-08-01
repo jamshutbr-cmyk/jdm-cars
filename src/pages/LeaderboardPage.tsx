@@ -134,6 +134,7 @@ export function LeaderboardPage() {
               onToggleLike={handleToggleLike}
               onToggleFavorite={handleToggleFavorite}
               onClick={() => setSelectedPost(post)}
+              onAuthorClick={setViewingUserId}
             />
           ))}
         </div>
@@ -185,6 +186,7 @@ export function LeaderboardPage() {
           onToggleLike={handleToggleLike}
           onToggleFavorite={handleToggleFavorite}
           onUpdate={handleUpdate}
+          onAuthorClick={(uid) => { setSelectedPost(null); setViewingUserId(uid); }}
         />
       )}
 
