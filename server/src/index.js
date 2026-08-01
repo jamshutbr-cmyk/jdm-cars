@@ -3,7 +3,6 @@ import express from 'express';
 import cors from 'cors';
 import { createAuthMiddleware } from './telegramAuth.js';
 import { carsRouter, UPLOADS_DIR } from './routes/cars.js';
-import { initDb } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT || 8787;
@@ -24,18 +23,12 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/api', createAuthMiddleware({ botToken: BOT_TOKEN, devMode: DEV_MODE }));
 app.use('/api', carsRouter(BOT_TOKEN));
 
-// Multer / generic error handler
+// Multer / generic error handler — keeps API responses JSON instead of HTML stack traces.
 app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(400).json({ error: err.message || 'bad_request' });
 });
 
-// Инициализируем БД и запускаем сервер
-initDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`[jdm-cars-server] слушает http://localhost:${PORT} (DEV_MODE=${DEV_MODE})`);
-  });
-}).catch((err) => {
-  console.error('[db] Не удалось инициализировать БД:', err);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`[jdm-cars-server] слушает http://localhost:${PORT} (DEV_MODE=${DEV_MODE})`);
 });
