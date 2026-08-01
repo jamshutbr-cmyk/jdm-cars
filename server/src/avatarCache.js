@@ -23,6 +23,7 @@ export async function getAvatarUrl(telegramUserId, botToken) {
       `https://api.telegram.org/bot${botToken}/getUserProfilePhotos?user_id=${numericId}&limit=1`,
     );
     const photosData = await photosRes.json();
+    console.log('[avatar] getUserProfilePhotos:', JSON.stringify(photosData).slice(0, 200));
 
     if (!photosData.ok || !photosData.result.photos.length) {
       cache.set(numericId, { url: null, expiresAt: Date.now() + TTL });
@@ -38,6 +39,7 @@ export async function getAvatarUrl(telegramUserId, botToken) {
       `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`,
     );
     const fileData = await fileRes.json();
+    console.log('[avatar] getFile:', JSON.stringify(fileData).slice(0, 200));
 
     if (!fileData.ok) {
       cache.set(numericId, { url: null, expiresAt: Date.now() + TTL });
@@ -45,9 +47,11 @@ export async function getAvatarUrl(telegramUserId, botToken) {
     }
 
     const url = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
+    console.log('[avatar] url ready for', numericId);
     cache.set(numericId, { url, expiresAt: Date.now() + TTL });
     return url;
-  } catch {
+  } catch (e) {
+    console.error('[avatar] error:', e.message);
     return null;
   }
 }
